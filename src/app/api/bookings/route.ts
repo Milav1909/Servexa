@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { service_id, booking_date } = await request.json();
+        const { service_id, booking_date, time_slot } = await request.json();
 
         // Validate required fields
         if (!service_id || !booking_date) {
@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
         // INSERT new booking with foreign keys
         // Status defaults to 'Pending' as defined in schema
         const result = await query<ResultSetHeader>(
-            'INSERT INTO bookings (user_id, service_id, booking_date) VALUES (?, ?, ?)',
-            [user.id, service_id, booking_date]
+            'INSERT INTO bookings (user_id, service_id, booking_date, time_slot) VALUES (?, ?, ?, ?)',
+            [user.id, service_id, booking_date, time_slot || null]
         );
 
         return NextResponse.json({
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
                 user_id: user.id,
                 service_id,
                 booking_date,
+                time_slot: time_slot || null,
                 status: 'Pending'
             }
         }, { status: 201 });
@@ -79,5 +80,79 @@ export async function POST(request: NextRequest) {
             { error: 'Internal server error' },
             { status: 500 }
         );
+    }
+}
+
+/**
+ * PATCH - Update booking status
+ * Providers can accept or complete bookings
+ */
+export async function PATCH(request: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'provider') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id, status } = await request.json();
+
+        if (!['Accepted', 'Completed'].includes(status)) {
+            return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+        }
+
+        // Update status only if the service belongs to this provider
+        const result = await query<ResultSetHeader>(
+            `UPDATE bookings b
+             JOIN services s ON b.service_id = s.id
+             SET b.status = ?
+             WHERE b.id = ? AND s.provider_id = ?`,
+            [status, id, user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ error: 'Booking not found or unauthorized' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: `Booking ${status.toLowerCase()} successfully` });
+    } catch (error) {
+        console.error('Update booking error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+/**
+ * DELETE - Cancel booking
+ * Only customers can cancel their own 'Pending' bookings
+ */
+export async function DELETE(request: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'user') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
+        }
+
+        // Delete only if it belongs to the user and is still 'Pending'
+        const result = await query<ResultSetHeader>(
+            'DELETE FROM bookings WHERE id = ? AND user_id = ? AND status = "Pending"',
+            [parseInt(id), user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ 
+                error: 'Booking not found, not pending, or unauthorized' 
+            }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Booking cancelled successfully' });
+    } catch (error) {
+        console.error('Cancel booking error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

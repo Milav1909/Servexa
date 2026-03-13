@@ -20,6 +20,7 @@ interface ServiceDetail {
     provider_email: string;
     provider_location: string;
     provider_category: string;
+    provider_phone: string | null;
 }
 
 export async function GET(
@@ -29,23 +30,47 @@ export async function GET(
     try {
         const { id } = await params;
 
-        // JOIN query to get service with provider details
-        const services = await query<ServiceDetail[]>(
-            `SELECT 
-        s.id,
-        s.provider_id,
-        s.service_name,
-        s.price,
-        s.category,
-        sp.name AS provider_name,
-        sp.email AS provider_email,
-        sp.location AS provider_location,
-        sp.category AS provider_category
-      FROM services s
-      JOIN service_providers sp ON s.provider_id = sp.id
-      WHERE s.id = ?`,
-            [id]
-        );
+        let services: ServiceDetail[];
+
+        try {
+            // JOIN query to get service with provider details (includes phone)
+            services = await query<ServiceDetail[]>(
+                `SELECT 
+            s.id,
+            s.provider_id,
+            s.service_name,
+            s.price,
+            s.category,
+            sp.name AS provider_name,
+            sp.email AS provider_email,
+            sp.location AS provider_location,
+            sp.category AS provider_category,
+            sp.phone AS provider_phone
+          FROM services s
+          JOIN service_providers sp ON s.provider_id = sp.id
+          WHERE s.id = ?`,
+                [id]
+            );
+        } catch {
+            // Fallback: phone column may not exist yet
+            services = await query<ServiceDetail[]>(
+                `SELECT 
+            s.id,
+            s.provider_id,
+            s.service_name,
+            s.price,
+            s.category,
+            sp.name AS provider_name,
+            sp.email AS provider_email,
+            sp.location AS provider_location,
+            sp.category AS provider_category,
+            NULL AS provider_phone
+          FROM services s
+          JOIN service_providers sp ON s.provider_id = sp.id
+          WHERE s.id = ?`,
+                [id]
+            );
+        }
 
         if (services.length === 0) {
             return NextResponse.json(

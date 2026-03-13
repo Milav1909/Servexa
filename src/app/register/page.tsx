@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { UserPlus, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
@@ -40,101 +41,114 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-12">
+        <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <span className="text-4xl">👤</span>
+                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-indigo-100">
+                        <UserPlus className="w-8 h-8 text-indigo-600 ml-1" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800">Create Account</h1>
-                    <p className="text-gray-500 mt-2">Join LocalServe as a customer</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create Account</h1>
+                    <p className="text-slate-500 mt-2 font-medium">Join Servexa as a customer</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 animate-fade-in">
-                        ⚠️ {error}
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl mb-6 animate-fade-in flex items-center gap-3 shadow-sm">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <span className="font-medium text-sm">{error}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="card p-8">
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="input-modern"
-                            placeholder="John Doe"
-                        />
-                    </div>
+                <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8">
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Full Name
+                            </label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                className="input-modern"
+                                placeholder="John Doe"
+                            />
+                        </div>
 
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="input-modern"
-                            placeholder="john@example.com"
-                        />
-                    </div>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="input-modern"
+                                placeholder="john@example.com"
+                            />
+                        </div>
 
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Phone Number
-                        </label>
-                        <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="input-modern"
-                            placeholder="+91 9876543210"
-                        />
-                    </div>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="input-modern"
+                                placeholder="+91 9876543210"
+                            />
+                        </div>
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            minLength={6}
-                            className="input-modern"
-                            placeholder="Minimum 6 characters"
-                        />
-                    </div>
+                        <div className="mb-8">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
+                                className="input-modern"
+                                placeholder="Minimum 6 characters"
+                            />
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn-primary w-full py-4 text-lg disabled:opacity-50"
-                    >
-                        {loading ? '⏳ Creating Account...' : '🚀 Create Account'}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-slate-900 text-white hover:bg-slate-800 w-full py-3.5 px-4 rounded-xl font-bold transition-all duration-300 shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" /> Creating Account...
+                                </>
+                            ) : (
+                                <>
+                                    Create Account <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
 
-                <p className="text-center mt-6 text-gray-600">
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-purple-600 font-semibold hover:underline">
-                        Sign in
-                    </Link>
-                </p>
+                <div className="mt-8 text-center space-y-3">
+                    <p className="text-sm text-slate-600 font-medium">
+                        Already have an account?{' '}
+                        <Link href="/login" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+                            Sign in
+                        </Link>
+                    </p>
 
-                <p className="text-center mt-3 text-gray-500">
-                    Are you a service provider?{' '}
-                    <Link href="/provider/register" className="text-green-600 font-semibold hover:underline">
-                        Register here
-                    </Link>
-                </p>
+                    <p className="text-sm text-slate-500">
+                        Are you a service provider?{' '}
+                        <Link href="/provider/register" className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors">
+                            Register here
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

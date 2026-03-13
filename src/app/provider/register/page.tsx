@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Building2, AlertCircle, Lightbulb, Loader2, ChevronRight, Check } from 'lucide-react';
 
 export default function ProviderRegisterPage() {
     const [name, setName] = useState('');
@@ -74,157 +75,180 @@ export default function ProviderRegisterPage() {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-12">
-            <div className="w-full max-w-md">
+        <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-lg">
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <span className="text-4xl">🏢</span>
+                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-200">
+                        <Building2 className="w-8 h-8 text-slate-700" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800">Become a Provider</h1>
-                    <p className="text-gray-500 mt-2">Start offering your services today</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Become a Provider</h1>
+                    <p className="text-slate-500 mt-2 font-medium">Start offering your services today</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 animate-fade-in">
-                        ⚠️ {error}
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl mb-6 animate-fade-in flex items-center gap-3 shadow-sm">
+                         <AlertCircle className="w-5 h-5 shrink-0" />
+                         <span className="font-medium text-sm">{error}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="card p-8">
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Business Name
-                        </label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="input-modern"
-                            placeholder="ABC Plumbing Services"
-                        />
-                    </div>
-
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Business Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="input-modern"
-                            placeholder="contact@business.com"
-                        />
-                    </div>
-
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">
-                            Service Categories <span className="text-gray-400 font-normal">(select all that apply)</span>
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {categories.map((cat) => (
-                                <label
-                                    key={cat}
-                                    className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedCategories.includes(cat)
-                                        ? 'border-green-500 bg-green-50 text-green-700'
-                                        : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCategories.includes(cat)}
-                                        onChange={() => toggleCategory(cat)}
-                                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                                    />
-                                    <span className="text-sm font-medium">{cat}</span>
-                                </label>
-                            ))}
+                <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8">
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Business Name
+                            </label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                className="input-modern"
+                                placeholder="ABC Plumbing Services"
+                            />
                         </div>
 
-                        {/* Custom Specialty Input - shows when Other is selected */}
-                        {selectedCategories.includes('Other') && (
-                            <div className="mt-3 animate-fade-in">
-                                <textarea
-                                    value={customCategory}
-                                    onChange={(e) => setCustomCategory(e.target.value)}
-                                    className="input-modern min-h-[80px] resize-none"
-                                    placeholder="Enter your services (separate multiple with commas)&#10;e.g., Interior Design, Pest Control, Home Security"
-                                    required
-                                    rows={3}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">💡 You can add multiple services separated by commas</p>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Business Email
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="input-modern"
+                                placeholder="contact@business.com"
+                            />
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-slate-700 mb-3 flex items-baseline gap-2">
+                                Service Categories 
+                                <span className="text-slate-400 font-normal text-xs">(select all that apply)</span>
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {categories.map((cat) => {
+                                    const isSelected = selectedCategories.includes(cat);
+                                    return (
+                                        <label
+                                            key={cat}
+                                            className={`relative flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                                                isSelected
+                                                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm'
+                                                    : 'border-slate-200 bg-white hover:border-indigo-300 text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={() => toggleCategory(cat)}
+                                                className="sr-only"
+                                            />
+                                            {isSelected && <Check className="w-4 h-4 text-indigo-600 absolute left-3" />}
+                                            <span className={`text-sm font-semibold ${isSelected ? 'pl-5' : ''}`}>{cat}</span>
+                                        </label>
+                                    );
+                                })}
                             </div>
-                        )}
-                    </div>
 
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Working Area Address
-                        </label>
-                        <input
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            required
-                            placeholder="Ahmedabad, Gujarat"
-                            className="input-modern"
-                        />
-                    </div>
+                            {/* Custom Specialty Input - shows when Other is selected */}
+                            {selectedCategories.includes('Other') && (
+                                <div className="mt-4 animate-fade-in bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <textarea
+                                        value={customCategory}
+                                        onChange={(e) => setCustomCategory(e.target.value)}
+                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none min-h-[80px]"
+                                        placeholder="Enter your services (separate multiple with commas)&#10;e.g., Interior Design, Pest Control, Home Security"
+                                        required
+                                        rows={3}
+                                    />
+                                    <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
+                                        <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> 
+                                        You can add multiple services separated by commas
+                                    </p>
+                                </div>
+                            )}
+                        </div>
 
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Service Area Pincode <span className="text-gray-400 font-normal">(optional)</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={pincode}
-                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            placeholder="382422"
-                            maxLength={6}
-                            className="input-modern"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Customers in this pincode & nearby areas will see your services</p>
-                    </div>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Working Area Address
+                            </label>
+                            <input
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                required
+                                placeholder="Ahmedabad, Gujarat"
+                                className="input-modern"
+                            />
+                        </div>
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            minLength={6}
-                            className="input-modern"
-                            placeholder="Minimum 6 characters"
-                        />
-                    </div>
+                        <div className="mb-5">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-baseline gap-2">
+                                Service Area Pincode 
+                                <span className="text-slate-400 font-normal text-xs">(optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={pincode}
+                                onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                placeholder="382422"
+                                maxLength={6}
+                                className="input-modern font-mono"
+                            />
+                            <p className="text-xs text-slate-500 mt-2 font-medium">Customers in this pincode & nearby areas will see your services</p>
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn-secondary w-full py-4 text-lg disabled:opacity-50"
-                    >
-                        {loading ? '⏳ Creating Account...' : '🚀 Start Your Business'}
-                    </button>
-                </form>
+                        <div className="mb-8">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
+                                className="input-modern"
+                                placeholder="Minimum 6 characters"
+                            />
+                        </div>
 
-                <p className="text-center mt-6 text-gray-600">
-                    Already have an account?{' '}
-                    <Link href="/provider/login" className="text-green-600 font-semibold hover:underline">
-                        Sign in
-                    </Link>
-                </p>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-slate-900 text-white hover:bg-slate-800 w-full py-3.5 px-4 rounded-xl font-bold transition-all duration-300 shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" /> Creating Account...
+                                </>
+                            ) : (
+                                <>
+                                    Start Your Business <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
 
-                <p className="text-center mt-3 text-gray-500">
-                    Are you a customer?{' '}
-                    <Link href="/register" className="text-purple-600 font-semibold hover:underline">
-                        Customer Sign Up
-                    </Link>
-                </p>
+                <div className="mt-8 text-center space-y-3">
+                    <p className="text-sm text-slate-600 font-medium">
+                        Already have an account?{' '}
+                        <Link href="/provider/login" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+                            Sign in
+                        </Link>
+                    </p>
+
+                    <p className="text-sm text-slate-500">
+                        Are you a customer?{' '}
+                        <Link href="/register" className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors">
+                            Customer Sign Up
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

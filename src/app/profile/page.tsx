@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2, XCircle, AlertTriangle, Check, Mail, MapPin, Phone, Pencil, Trash2, Crosshair, X, AlertCircle } from 'lucide-react';
 
 interface Profile {
     id: number;
@@ -78,11 +79,29 @@ export default function ProfilePage() {
                     const { latitude, longitude } = position.coords;
                     // Use reverse geocoding to get address from coordinates
                     const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
                     );
                     const data = await response.json();
 
-                    if (data.display_name) {
+                    if (data.address) {
+                        // Auto-fill pincode from postcode
+                        if (data.address.postcode) {
+                            setPincode(data.address.postcode.replace(/\s/g, '').slice(0, 6));
+                        }
+
+                        // Auto-fill area/landmark from suburb, neighbourhood, or county
+                        const area = data.address.suburb || data.address.neighbourhood || data.address.village || data.address.county || data.address.town || '';
+                        if (area) {
+                            setLandmark(area);
+                        }
+
+                        // Set address from display_name
+                        if (data.display_name) {
+                            setAddress(data.display_name);
+                        }
+
+                        setMessage({ type: 'success', text: 'Location detected! Pincode and area auto-filled.' });
+                    } else if (data.display_name) {
                         setAddress(data.display_name);
                         setMessage({ type: 'success', text: 'Location detected successfully!' });
                     } else {
@@ -178,54 +197,59 @@ export default function ProfilePage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="flex flex-col items-center">
+                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
+                    <p className="text-slate-500 font-medium">Loading profile...</p>
+                </div>
             </div>
         );
     }
 
     if (!profile) {
         return (
-            <div className="card p-12 text-center max-w-md mx-auto">
-                <span className="text-6xl mb-4 block">❌</span>
-                <p className="text-xl text-gray-600">Profile not found</p>
+            <div className="card py-16 px-6 text-center max-w-md mx-auto mt-12 border-dashed border-2 border-slate-200">
+                <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm border border-rose-100">
+                    <XCircle className="w-8 h-8 text-rose-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Profile not found</h3>
+                <p className="text-slate-500">We couldn&apos;t load your profile information.</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-2xl mx-auto py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-                <p className="text-gray-500 mt-2">View and manage your account details</p>
+        <div className="max-w-2xl mx-auto py-12 px-6">
+            <div className="mb-10 text-center sm:text-left">
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Profile</h1>
+                <p className="text-slate-500 mt-2 font-medium">View and manage your account details</p>
             </div>
 
             {message.text && (
-                <div className={`p-4 rounded-xl mb-6 animate-fade-in ${message.type === 'error'
-                    ? 'bg-red-50 border border-red-200 text-red-700'
-                    : 'bg-green-50 border border-green-200 text-green-700'
+                <div className={`p-4 rounded-xl mb-8 animate-fade-in flex items-center gap-3 shadow-sm ${message.type === 'error'
+                    ? 'bg-rose-50 border border-rose-200 text-rose-700'
+                    : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
                     }`}>
-                    {message.type === 'error' ? '⚠️' : '✓'} {message.text}
+                    {message.type === 'error' ? <AlertCircle className="w-5 h-5 shrink-0" /> : <Check className="w-5 h-5 shrink-0" />}
+                    <span className="font-medium text-sm">{message.text}</span>
                 </div>
             )}
 
             {/* Add Address Banner - Show when address is not set */}
             {!editing && profile && !profile.address && (
-                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-6 mb-6 text-white animate-fade-in">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
+                <div className="bg-indigo-600 rounded-3xl p-6 sm:p-8 mb-8 text-white shadow-md relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 border border-white/20">
+                            <MapPin className="w-8 h-8 text-white" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-lg">Add Your Address</h3>
-                            <p className="text-purple-100 text-sm">Add your address to see services available in your area</p>
+                            <h3 className="font-bold text-xl mb-1">Add Your Address</h3>
+                            <p className="text-indigo-100 font-medium text-sm">Add your address to see services available in your area seamlessly.</p>
                         </div>
                         <button
                             onClick={() => setEditing(true)}
-                            className="bg-white text-purple-600 px-5 py-2.5 rounded-xl font-semibold hover:bg-purple-50 transition"
+                            className="bg-white text-indigo-700 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition w-full sm:w-auto text-center"
                         >
                             Add Now
                         </button>
@@ -233,16 +257,16 @@ export default function ProfilePage() {
                 </div>
             )}
 
-            <div className="card p-8">
+            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10">
                 {/* Profile Header */}
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold">
+                <div className="flex items-center gap-6 mb-10 pb-8 border-b border-slate-100">
+                    <div className="w-24 h-24 bg-slate-900 rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-lg shadow-slate-900/20 shrink-0">
                         {profile.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800">{profile.name}</h2>
-                        <p className="text-gray-500">{profile.email}</p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">{profile.name}</h2>
+                        <p className="text-slate-500 font-medium mb-2">{profile.email}</p>
+                        <p className="text-xs font-semibold text-slate-400 bg-slate-100 inline-block px-3 py-1 rounded-full">
                             Member since {new Date(profile.created_at).toLocaleDateString('en-IN', {
                                 year: 'numeric', month: 'long', day: 'numeric'
                             })}
@@ -253,95 +277,90 @@ export default function ProfilePage() {
                 {editing ? (
                     /* Edit Form */
                     <form onSubmit={handleSave}>
-                        <div className="mb-5">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 required
-                                className="input-modern"
+                                className="input-modern bg-slate-50"
                             />
                         </div>
 
-                        <div className="mb-5">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Email (cannot change)</label>
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Email (cannot change)</label>
                             <input
                                 type="email"
                                 value={profile.email}
                                 disabled
-                                className="input-modern bg-gray-100 cursor-not-allowed"
+                                className="input-modern bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
                             />
                         </div>
 
-                        <div className="mb-5">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                        <div className="mb-8">
+                            <label className="block text-sm font-semibold text-slate-700 mb-3">Address</label>
 
                             {/* Location Detection Button */}
                             <button
                                 type="button"
                                 onClick={detectLocation}
                                 disabled={detectingLocation}
-                                className="w-full mb-3 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50"
+                                className="w-full mb-6 flex items-center justify-center gap-2 bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {detectingLocation ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Detecting Location...
+                                        <Loader2 className="w-5 h-5 animate-spin" /> Detecting Location...
                                     </>
                                 ) : (
                                     <>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        Use My Current Location
+                                        <Crosshair className="w-5 h-5" /> Use My Current Location
                                     </>
                                 )}
                             </button>
 
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="flex-1 h-px bg-gray-200"></div>
-                                <span className="text-sm text-gray-400">or enter manually</span>
-                                <div className="flex-1 h-px bg-gray-200"></div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="flex-1 h-px bg-slate-200"></div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">or enter manually</span>
+                                <div className="flex-1 h-px bg-slate-200"></div>
                             </div>
 
                             {/* Address Details Form */}
-                            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                                <h4 className="font-semibold text-gray-800">Address Details</h4>
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-5">
+                                <h4 className="font-bold text-slate-800 text-lg">Address Details</h4>
 
                                 {/* Pincode */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">Pincode</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pincode</label>
                                     <input
                                         type="text"
                                         value={pincode}
                                         onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        className="input-modern"
+                                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-mono"
                                         placeholder="382422"
                                         maxLength={6}
                                     />
                                 </div>
 
                                 {/* House No & Floor No */}
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-600 mb-1">House No.</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">House No.</label>
                                         <input
                                             type="text"
                                             value={houseNo}
                                             onChange={(e) => setHouseNo(e.target.value)}
-                                            className="input-modern"
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                             placeholder="123"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-600 mb-1">Floor No.</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Floor No.</label>
                                         <input
                                             type="text"
                                             value={floorNo}
                                             onChange={(e) => setFloorNo(e.target.value)}
-                                            className="input-modern"
+                                            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                             placeholder="2nd"
                                         />
                                     </div>
@@ -349,36 +368,36 @@ export default function ProfilePage() {
 
                                 {/* Tower No */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">Tower No.</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tower No.</label>
                                     <input
                                         type="text"
                                         value={towerNo}
                                         onChange={(e) => setTowerNo(e.target.value)}
-                                        className="input-modern"
+                                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                         placeholder="Tower A"
                                     />
                                 </div>
 
                                 {/* Building / Apartment Name */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">Building / Apartment Name</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Building / Apt Name</label>
                                     <input
                                         type="text"
                                         value={buildingName}
                                         onChange={(e) => setBuildingName(e.target.value)}
-                                        className="input-modern"
+                                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                         placeholder="Sunrise Apartments"
                                     />
                                 </div>
 
                                 {/* Address */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">Address <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Address <span className="text-rose-500">*</span></label>
                                     <input
                                         type="text"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        className="input-modern"
+                                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                         placeholder="Street name, Area, City"
                                         required
                                     />
@@ -386,12 +405,12 @@ export default function ProfilePage() {
 
                                 {/* Landmark / Area */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">Landmark / Area <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Landmark / Area <span className="text-rose-500">*</span></label>
                                     <input
                                         type="text"
                                         value={landmark}
                                         onChange={(e) => setLandmark(e.target.value)}
-                                        className="input-modern"
+                                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                         placeholder="Near City Mall, Main Road"
                                         required
                                     />
@@ -399,73 +418,83 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                        <div className="mb-10">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
                             <input
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                className="input-modern"
+                                className="input-modern bg-slate-50"
                                 placeholder="+91 9876543210"
                             />
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 type="button"
                                 onClick={() => setEditing(false)}
-                                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+                                className="flex-1 bg-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-200 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="flex-1 btn-primary py-3 disabled:opacity-50"
+                                className="flex-1 bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-70 flex items-center justify-center gap-2 shadow-sm"
                             >
-                                {saving ? '⏳ Saving...' : '✓ Save Changes'}
+                                {saving ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
+                                ) : (
+                                    <><Check className="w-5 h-5" /> Save Changes</>
+                                )}
                             </button>
                         </div>
                     </form>
                 ) : (
                     /* View Mode */
                     <div className="space-y-4">
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                            <span className="text-2xl">📧</span>
+                        <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl transition hover:bg-slate-100/50">
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
+                                <Mail className="w-5 h-5 text-slate-500" />
+                            </div>
                             <div>
-                                <p className="text-sm text-gray-500">Email</p>
-                                <p className="font-semibold text-gray-800">{profile.email}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Email</p>
+                                <p className="font-semibold text-slate-800">{profile.email}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                            <span className="text-2xl">📍</span>
+                        <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl transition hover:bg-slate-100/50">
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
+                                <MapPin className="w-5 h-5 text-slate-500" />
+                            </div>
                             <div>
-                                <p className="text-sm text-gray-500">Address</p>
-                                <p className="font-semibold text-gray-800">{profile.address || 'Not provided'}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Address</p>
+                                <p className="font-semibold text-slate-800">{profile.address || 'Not provided'}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                            <span className="text-2xl">📱</span>
+                        <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl transition hover:bg-slate-100/50">
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
+                                <Phone className="w-5 h-5 text-slate-500" />
+                            </div>
                             <div>
-                                <p className="text-sm text-gray-500">Phone Number</p>
-                                <p className="font-semibold text-gray-800">{profile.phone || 'Not provided'}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Phone Number</p>
+                                <p className="font-semibold text-slate-800">{profile.phone || 'Not provided'}</p>
                             </div>
                         </div>
 
-                        <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100">
+                        <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-8 border-t border-slate-100">
                             <button
                                 onClick={() => setEditing(true)}
-                                className="flex-1 btn-primary py-3"
+                                className="flex-1 bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 shadow-sm"
                             >
-                                ✏️ Edit Profile
+                                <Pencil className="w-4 h-4" /> Edit Profile
                             </button>
                             <button
                                 onClick={() => setShowDeleteModal(true)}
-                                className="flex-1 bg-red-50 text-red-600 py-3 rounded-xl font-semibold hover:bg-red-100 transition"
+                                className="flex-1 bg-rose-50 border border-rose-200 text-rose-600 py-3.5 rounded-xl font-bold hover:bg-rose-100 transition-colors flex items-center justify-center gap-2"
                             >
-                                🗑️ Delete Account
+                                <Trash2 className="w-4 h-4" /> Delete Account
                             </button>
                         </div>
                     </div>
@@ -474,29 +503,35 @@ export default function ProfilePage() {
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="card p-8 max-w-md w-full mx-4 animate-fade-in">
-                        <div className="text-center mb-6">
-                            <span className="text-6xl mb-4 block">⚠️</span>
-                            <h2 className="text-2xl font-bold text-gray-800">Delete Account?</h2>
-                            <p className="text-gray-500 mt-2">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-8 rounded-3xl max-w-md w-full animate-fade-in shadow-2xl border border-slate-100">
+                        <div className="text-center mb-8">
+                            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                 <AlertTriangle className="w-10 h-10 text-rose-600" />
+                            </div>
+                            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">Delete Account?</h2>
+                            <p className="text-slate-500 font-medium leading-relaxed">
                                 This action cannot be undone. All your bookings and reviews will be permanently deleted.
                             </p>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+                                className="flex-1 bg-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-200 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="flex-1 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                                className="flex-1 bg-rose-600 text-white py-3.5 rounded-xl font-bold hover:bg-rose-700 transition-colors disabled:opacity-70 flex items-center justify-center gap-2 shadow-sm"
                             >
-                                {deleting ? '⏳ Deleting...' : '🗑️ Yes, Delete'}
+                                {deleting ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Deleting...</>
+                                ) : (
+                                    <><Trash2 className="w-5 h-5" /> Yes, Delete</>
+                                )}
                             </button>
                         </div>
                     </div>

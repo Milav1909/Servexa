@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { MapPin, LogOut, User as UserIcon } from 'lucide-react';
 
 interface User {
     id: number;
@@ -28,7 +29,7 @@ export default function Navbar() {
                 setUser(data.user);
             }
         } catch (error) {
-
+            console.error('Auth verification failed', error);
         } finally {
             setLoading(false);
         }
@@ -40,31 +41,28 @@ export default function Navbar() {
             setUser(null);
             window.location.href = '/';
         } catch (error) {
-
+            console.error('Logout failed', error);
         }
     };
 
     return (
-        <nav className="bg-white/95 backdrop-blur-md text-gray-800 shadow-lg sticky top-0 z-50 border-b border-gray-100">
+        <nav className="bg-white/80 backdrop-blur-xl text-slate-800 shadow-sm sticky top-0 z-50 border-b border-slate-200/60">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center h-16">
 
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-purple-300 transition-all duration-300 group-hover:scale-105">
-                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                            </svg>
+                    <Link href="/" className="flex items-center gap-2.5 group">
+                        <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-[0_2px_8px_rgba(79,70,229,0.3)] group-hover:scale-105 transition-all duration-300">
+                            <MapPin className="w-5 h-5 text-white" strokeWidth={2.5} />
                         </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                            LocalServe
+                        <span className="text-xl font-bold text-slate-900 tracking-tight">
+                            Servexa
                         </span>
                     </Link>
 
-
                     <div className="flex items-center gap-1">
                         {loading ? (
-                            <div className="px-4 py-2">
-                                <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="px-4 py-2 flex items-center justify-center">
+                                <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                             </div>
                         ) : user ? (
                             <>
@@ -72,19 +70,19 @@ export default function Navbar() {
                                     <>
                                         <Link
                                             href="/services"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             Services
                                         </Link>
                                         <Link
                                             href="/bookings/user"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             My Bookings
                                         </Link>
                                         <Link
                                             href="/profile"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             Profile
                                         </Link>
@@ -93,40 +91,47 @@ export default function Navbar() {
                                     <>
                                         <Link
                                             href="/provider/dashboard"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             Dashboard
                                         </Link>
                                         <Link
                                             href="/bookings/provider"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             Bookings
                                         </Link>
                                         <Link
                                             href="/provider/reviews"
-                                            className="px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 font-medium"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
                                         >
                                             Reviews
+                                        </Link>
+                                        <Link
+                                            href="/provider/profile"
+                                            className="px-4 py-2 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all duration-200 font-medium text-sm"
+                                        >
+                                            Profile
                                         </Link>
                                     </>
                                 )}
 
-                                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md">
-                                            {user.name.charAt(0).toUpperCase()}
+                                <div className="flex items-center gap-4 ml-4 pl-4 border-l border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                                            <UserIcon className="w-4 h-4" />
                                         </div>
                                         <div className="hidden sm:block">
-                                            <p className="text-sm font-semibold text-gray-800">{user.name}</p>
-                                            <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                                            <p className="text-sm font-semibold text-slate-800 leading-none mb-1">{user.name}</p>
+                                            <p className="text-xs text-slate-500 capitalize leading-none">{user.role}</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={handleLogout}
-                                        className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-200"
+                                        title="Logout"
                                     >
-                                        Logout
+                                        <LogOut className="w-5 h-5" />
                                     </button>
                                 </div>
                             </>
@@ -137,3 +142,4 @@ export default function Navbar() {
         </nav>
     );
 }
+

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Local Service Provider",
-  description: "Find and book local service providers",
+  title: "Servexa - Local Service Provider",
+  description: "Servexa - Find and book local service providers near you",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900 min-h-screen selection:bg-indigo-100 selection:text-indigo-900`}
       >
         <Navbar />
         <main className="max-w-7xl mx-auto px-4 py-8">

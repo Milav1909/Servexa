@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ServiceCard from '@/components/ServiceCard';
+import { Search, MapPin, Inbox, Loader2, Map } from 'lucide-react';
 
 interface Service {
     id: number;
@@ -146,10 +147,10 @@ export default function ServicesPage() {
 
     if (authChecking) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="text-center">
-                    <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="mt-4 text-gray-600">Checking authentication...</p>
+                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">Authenticating...</p>
                 </div>
             </div>
         );
@@ -160,33 +161,31 @@ export default function ServicesPage() {
     }
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen pb-16">
             {/* Hero Section */}
-            <div className="hero-gradient text-white py-16 -mt-8 mb-12">
+            <div className="bg-white border-b border-slate-200 pt-12 pb-16 mb-10">
                 <div className="max-w-7xl mx-auto px-6 text-center">
-                    <h1 className="text-5xl font-bold mb-4">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
                         Find Local Services
                     </h1>
-                    <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
+                    <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto font-medium">
                         {userPincode
                             ? `Showing services near pincode ${userPincode} and nearby areas`
-                            : 'Connect with trusted professionals in your area. Book plumbers, electricians, cleaners, and more!'
+                            : 'Connect with trusted professionals in your area.'
                         }
                     </p>
 
                     {/* Search Bar */}
                     <div className="max-w-2xl mx-auto">
-                        <div className="relative">
+                        <div className="relative group">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search services, plumbers, electricians..."
-                                className="w-full px-6 py-4 pl-14 rounded-2xl text-gray-800 bg-white shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-300 text-lg"
+                                placeholder="Search services, categories, or providers..."
+                                className="w-full pl-14 pr-6 py-4 rounded-2xl border border-slate-200 text-slate-900 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-base transition-all duration-300"
                             />
-                            <svg className="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                         </div>
                     </div>
                 </div>
@@ -195,23 +194,20 @@ export default function ServicesPage() {
             {/* Add Address Banner - Show when no address */}
             {!hasAddress && (
                 <div className="max-w-7xl mx-auto px-6 mb-8">
-                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="w-12 h-12 bg-amber-100/50 rounded-xl flex items-center justify-center shrink-0">
+                                <Map className="w-6 h-6 text-amber-600" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg">Add Your Address</h3>
-                                <p className="text-amber-100 text-sm">Add your pincode to see services available in your area only</p>
+                                <h3 className="font-bold text-lg text-amber-900">Add Your Address</h3>
+                                <p className="text-amber-700 text-sm mt-0.5 font-medium">We need your pincode to show services available specifically in your area.</p>
                             </div>
                             <Link
                                 href="/profile"
-                                className="bg-white text-orange-600 px-5 py-2.5 rounded-xl font-semibold hover:bg-orange-50 transition"
+                                className="bg-amber-600 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-amber-700 transition shadow-sm whitespace-nowrap"
                             >
-                                Add Address
+                                Update Profile
                             </Link>
                         </div>
                     </div>
@@ -220,40 +216,37 @@ export default function ServicesPage() {
 
             {/* Location Indicator - Show when pincode is set */}
             {userPincode && (
-                <div className="max-w-7xl mx-auto px-6 mb-6">
-                    <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                <div className="max-w-7xl mx-auto px-6 mb-8">
+                    <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2.5 rounded-full text-sm font-semibold shadow-sm">
+                        <MapPin className="w-4 h-4" />
                         Showing services for pincode: {userPincode} & nearby areas
                     </div>
                 </div>
             )}
 
             {/* Services Grid */}
-            <div className="max-w-7xl mx-auto px-6 pb-16">
+            <div className="max-w-7xl mx-auto px-6">
                 <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-2xl font-bold text-gray-800">
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
                         {searchQuery ? `Results for "${searchQuery}"` : userPincode ? 'Services Near You' : 'All Services'}
                     </h2>
-                    <span className="text-gray-500">
-                        {filteredServices.length} services found
+                    <span className="text-slate-500 font-medium text-sm">
+                        {filteredServices.length} {filteredServices.length === 1 ? 'service' : 'services'} found
                     </span>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-16">
-                        <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                        <p className="mt-4 text-gray-600">Loading services...</p>
+                    <div className="text-center py-20">
+                        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
+                        <p className="text-slate-500 font-medium">Loading available services...</p>
                     </div>
                 ) : filteredServices.length === 0 ? (
-                    <div className="text-center py-16 card">
-                        <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <p className="text-xl text-gray-600">No services found{searchQuery && ` for "${searchQuery}"`}</p>
-                        <p className="text-gray-400 mt-2">Try a different search term</p>
+                    <div className="text-center py-20 bg-white border border-slate-100 rounded-3xl shadow-sm">
+                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                             <Inbox className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <p className="text-xl font-semibold text-slate-700 mb-2">No services found{searchQuery && ` for "${searchQuery}"`}</p>
+                        <p className="text-slate-500 font-medium">Try adjusting your search terms or location settings.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -266,3 +259,4 @@ export default function ServicesPage() {
         </div>
     );
 }
+

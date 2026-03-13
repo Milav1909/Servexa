@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BookingCard from '@/components/BookingCard';
+import { Loader2, Mailbox, Star, Check } from 'lucide-react';
 
 interface Booking {
     id: number;
@@ -85,40 +86,65 @@ export default function UserBookingsPage() {
         }
     };
 
+    const handleCancel = async (id: number) => {
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+        try {
+            const res = await fetch(`/api/bookings?id=${id}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                setBookings(bookings.filter(b => b.id !== id));
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to cancel booking');
+            }
+        } catch (error) {
+            console.error('Error cancelling booking:', error);
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="flex flex-col items-center">
+                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
+                    <p className="text-slate-500 font-medium">Loading your bookings...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">My Bookings</h1>
-                <p className="text-gray-500 mt-2">View and manage your service bookings</p>
+        <div className="max-w-6xl mx-auto py-12 px-6">
+            <div className="mb-10 text-center sm:text-left">
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Bookings</h1>
+                <p className="text-slate-500 mt-2 font-medium">View and manage your service bookings</p>
             </div>
 
             {bookings.length === 0 ? (
-                <div className="card p-12 text-center">
-                    <span className="text-6xl mb-4 block">📭</span>
-                    <p className="text-xl text-gray-600 mb-4">You haven&apos;t made any bookings yet.</p>
-                    <a href="/" className="btn-primary inline-block px-8">
+                <div className="card py-16 px-6 text-center border-dashed border-2 border-slate-200 bg-slate-50/50">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm border border-slate-100">
+                         <Mailbox className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-700 mb-2">You haven&apos;t made any bookings yet.</h3>
+                    <p className="text-slate-500 mb-6 font-medium">Find the perfect service provider today.</p>
+                    <a href="/services" className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-sm inline-block">
                         Browse Services
                     </a>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {bookings.map((booking) => (
-                        <div key={booking.id} className="relative">
-                            <BookingCard {...booking} />
+                        <div key={booking.id} className="relative group">
+                            <BookingCard {...booking} onCancel={handleCancel} />
                             {booking.status === 'Completed' && (
                                 <button
                                     onClick={() => openReviewModal(booking)}
-                                    className="mt-3 w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition"
+                                    className="mt-4 w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 shadow-md transition-all flex items-center justify-center gap-2"
                                 >
-                                    ⭐ Leave a Review
+                                    <Star className="w-5 h-5 text-amber-400 fill-amber-400/20" /> Leave a Review
                                 </button>
                             )}
                         </div>
@@ -128,51 +154,60 @@ export default function UserBookingsPage() {
 
             {/* Review Modal */}
             {showReviewModal && selectedBooking && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="card p-8 max-w-md w-full mx-4 animate-fade-in">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Leave a Review</h2>
-                        <p className="text-gray-500 mb-6">Rate your experience with {selectedBooking.provider_name}</p>
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full animate-fade-in shadow-2xl border border-slate-100">
+                        <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Leave a Review</h2>
+                        <p className="text-slate-500 font-medium mb-8">Rate your experience with {selectedBooking.provider_name}</p>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">Rating</label>
-                            <div className="flex gap-2">
+                        <div className="mb-8">
+                            <label className="block text-sm font-semibold text-slate-700 mb-4">Rating</label>
+                            <div className="flex gap-3">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
                                         onClick={() => setRating(star)}
-                                        className={`text-4xl transition transform hover:scale-110 ${star <= rating ? 'star-filled' : 'star-empty'
-                                            }`}
+                                        className="transition-transform hover:scale-110 focus:outline-none"
                                     >
-                                        ★
+                                        <Star 
+                                            className={`w-10 h-10 transition-colors ${
+                                                star <= rating 
+                                                    ? 'text-amber-400 fill-amber-400' 
+                                                    : 'text-slate-200 fill-transparent'
+                                            }`} 
+                                        />
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Comment (optional)</label>
+                        <div className="mb-8">
+                            <label className="block text-sm font-semibold text-slate-700 mb-3">Comment (optional)</label>
                             <textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 rows={4}
-                                className="input-modern resize-none"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none"
                                 placeholder="Share your experience..."
                             />
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={() => setShowReviewModal(false)}
-                                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+                                className="flex-1 bg-slate-100 text-slate-700 py-3.5 rounded-xl font-bold hover:bg-slate-200 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={submitReview}
                                 disabled={submitting}
-                                className="flex-1 btn-secondary py-3 disabled:opacity-50"
+                                className="flex-1 bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
                             >
-                                {submitting ? '⏳ Submitting...' : '✓ Submit Review'}
+                                {submitting ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
+                                ) : (
+                                    <><Check className="w-5 h-5" /> Submit Review</>
+                                )}
                             </button>
                         </div>
                     </div>

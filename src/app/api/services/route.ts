@@ -143,3 +143,70 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+/**
+ * PUT - Update a service
+ * Requires authentication as the service owner
+ */
+export async function PUT(request: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'provider') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id, service_name, price, category } = await request.json();
+
+        if (!id || !service_name || !price || !category) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        const result = await query<ResultSetHeader>(
+            'UPDATE services SET service_name = ?, price = ?, category = ? WHERE id = ? AND provider_id = ?',
+            [service_name, price, category, id, user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ error: 'Service not found or unauthorized' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Service updated successfully' });
+    } catch (error) {
+        console.error('Update service error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+/**
+ * DELETE - Remove a service
+ * Requires authentication as the service owner
+ */
+export async function DELETE(request: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user || user.role !== 'provider') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Service ID required' }, { status: 400 });
+        }
+
+        const result = await query<ResultSetHeader>(
+            'DELETE FROM services WHERE id = ? AND provider_id = ?',
+            [parseInt(id), user.id]
+        );
+
+        if (result.affectedRows === 0) {
+            return NextResponse.json({ error: 'Service not found or unauthorized' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Service deleted successfully' });
+    } catch (error) {
+        console.error('Delete service error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
